@@ -7,7 +7,7 @@ from os.path import basename
 from difflib import SequenceMatcher
 
 def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
+  return SequenceMatcher(None, a, b).ratio()
 
 workingDir = str(sys.argv[1])
 print("workingDir", workingDir)
@@ -20,9 +20,6 @@ if (not os.path.isdir(subsDir)):
 
 # Files that are 1 layer deep
 movieFiles = glob(subsDir + "/*.srt")
-
-# Files that are 2 layers deep
-showFiles = glob(subsDir + "/**/*.srt")
 
 # Gets the ISO code "en", "fr", etc.
 # from the file basename
@@ -53,10 +50,19 @@ def does_working_dir_contains_matching_media(checkedName):
   movieSeemingFiles = filter(filter_movie_extensions, glob(workingDir + "/" + checkedName + ".*"))
   return len(list(movieSeemingFiles)) > 0
 
+def doFileCopy(oldFile, newFile):
+  print (".")
+  print("performing copy")
+  print (oldFile)
+  print ("------>")
+  print (newFile)
+  print (".")
+  shutil.copyfile(oldFile, newFile)
+
 # Fix the movie files
 # C/dir/to/movie/AVENGERS.1080p/
 #   AVENGERS.1080p.mp4
-#   Subs
+#   Subs/
 #       2_English.srt
 if (does_working_dir_contains_matching_media(workingDirBasename)):
   for filePath in movieFiles:
@@ -65,25 +71,39 @@ if (does_working_dir_contains_matching_media(workingDirBasename)):
     langCode = getLangCode(movieBaseName)
     if (langCode is None):
       print("Can't determine language code for =>", movieBaseName)
-      next
-    # print("langCode", langCode)
+      continue
 
     # do the file move
     newFile = join(workingDir, workingDirBasename + "." + langCode + ".srt")
-    print("performing copy")
-    print (filePath)
-    print ("------>")
-    print (newFile)
-    shutil.copyfile(filePath, newFile)
+    doFileCopy(filePath, newFile)
 
-    # Don't move more than the first file!
+    # Don't move more than the first file! This is a movie
     break
 else:
   print("This is not a movie directory", workingDir)
 
+# Files that are 2 layers deep
+showFiles = glob(subsDir + "/**/*.srt")
+
 # Fix the TV show files
 # C/dir/to/show/PENTHOUSE.1080p/
 #   PENTHOUSE.S01E01.1080p.mp4
-#   Subs
-#     PENTHOUSE.S01E01.1080p
+#   Subs/
+#     PENTHOUSE.S01E01.1080p/
 #       2_English.srt
+for filePath in showFiles:
+  showBaseName = basename(filePath)
+  langCode = getLangCode(showBaseName)
+  if (langCode is None):
+    # print("Can't determine language code for =>", showBaseName)
+    continue
+  print("on show file", filePath)
+
+  # Do a media match check
+  episodeName = basename(os.path.dirname(filePath))
+  if (not does_working_dir_contains_matching_media(episodeName)):
+    print("no media found for episode", episodeName, "in workingDir", workingDir)
+    continue
+
+  newFile = join(workingDir, episodeName + "." + langCode + ".srt")
+  doFileCopy(filePath, newFile)
