@@ -1,3 +1,5 @@
+[![forthebadge](https://forthebadge.com/images/badges/made-with-crayons.svg)](https://forthebadge.com)
+
 # subtitle-renamer-scripts
 A way to rename subtitles in nested folders. Useful for legal torrenting.
 
