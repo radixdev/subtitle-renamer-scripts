@@ -25,8 +25,13 @@ movieFiles = glob(subsDir + "/*.srt")
 # from the file basename
 def getLangCode(filename):
   n = filename.lower()
-  threshold = 0.6
-  if (similar("eng.srt", n) > threshold):
+  # Todo sort which words have the highest
+  # matches instead of winner take all
+  if (similar("_english.srt", n) > 0.9):
+    print("matched whole word", n)
+    return "en"
+  if (similar("_eng.srt", n) > 0.75):
+    print("matched partial word", n)
     return "en"
   # Add other language codes here if you like
   return None
