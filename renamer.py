@@ -20,6 +20,8 @@ if (not os.path.isdir(subsDir)):
 
 # Files that are 1 layer deep
 movieFiles = glob(subsDir + "/*.srt")
+# Sort files by size
+movieFiles = sorted( movieFiles, key =  lambda x: os.stat(x).st_size)
 
 # Gets the ISO code "en", "fr", etc.
 # from the file basename
@@ -69,6 +71,10 @@ def doFileCopy(oldFile, newFile):
 #   AVENGERS.1080p.mp4
 #   Subs/
 #       2_English.srt
+
+# Create a Subtitle List to hold the files we want to keep.
+subtitles = []
+subtitlesPath = []
 if (does_working_dir_contains_matching_media(workingDirBasename)):
   for filePath in movieFiles:
     print("on movie file", filePath)
@@ -77,15 +83,30 @@ if (does_working_dir_contains_matching_media(workingDirBasename)):
     if (langCode is None):
       print("Can't determine language code for =>", movieBaseName)
       continue
-
-    # do the file move
-    newFile = join(workingDir, workingDirBasename + "." + langCode + ".srt")
-    doFileCopy(filePath, newFile)
-
-    # Don't move more than the first file! This is a movie
-    break
+    # Add to list
+    subtitles.append(join(workingDir, workingDirBasename + "." + langCode))
+    subtitlesPath.append(filePath)
 else:
   print("This is not a movie directory", workingDir)
+  
+# Logic for mutiple subtitles
+if (len(subtitles) == 3):
+  doFileCopy(subtitlesPath[0], subtitles[0] + ".forced" + ".srt")
+  doFileCopy(subtitlesPath[1], subtitles[1] + ".srt")
+  doFileCopy(subtitlesPath[2], subtitles[2] + ".sdh" + ".srt")
+elif (len(subtitles) == 2):
+  # Compare the file size if <= 20kb assume as forced
+  if (os.path.getsize(subtitlesPath[0]) <= 20000):
+    doFileCopy(subtitlesPath[0], subtitles[0] + ".forced" + ".srt")
+    doFileCopy(subtitlesPath[1], subtitles[1] + ".srt")
+  else:
+    doFileCopy(subtitlesPath[0], subtitles[0] + ".srt")
+    doFileCopy(subtitlesPath[1], subtitles[1] + ".sdh" + ".srt")
+elif (len(subtitles) == 1):
+  doFileCopy(subtitlesPath[0], subtitles[0] + ".srt")
+else:
+  print("More than 3 Subtitles found")
+  
 
 # Files that are 2 layers deep
 showFiles = glob(subsDir + "/**/*.srt")
