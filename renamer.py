@@ -16,7 +16,7 @@ workingDir = str(sys.argv[1])
 print("workingDir", workingDir)
 
 # Verify we're in the right spot
-subsDir = join(workingDir, "Subs")
+subsDir = ' '.join(glob(workingDir + '/*[sS][uU][bB]*'))
 if (not os.path.isdir(subsDir)):
   print(workingDir, "is not a directory with subtitles in it")
   sys.exit(1)
@@ -32,11 +32,14 @@ def getLangCode(filename):
   n = filename.lower()
   # Todo sort which words have the highest
   # matches instead of winner take all
-  if (similar("_english.srt", n) > 0.9):
+  if (similar("english.srt", n) > 0.9):
     print("matched whole word", n)
     return "eng"
   if (similar("_eng.srt", n) > 0.75):
     print("matched partial word", n)
+    return "eng"
+  if ('english' in n or 'eng' in n):
+    print("matched in string compare", n)
     return "eng"
   # Add other language codes here if you like
   return None
