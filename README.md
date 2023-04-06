@@ -3,6 +3,8 @@
 # subtitle-renamer-scripts
 A way to rename subtitles in nested folders. Useful for legal torrenting.
 
+Works for English, Arabic, Spanish, Korean, French, German. If you need a new language, see `LANGUAGES` in renamer.py and submit a pull request.
+
 # Usage
 Just execute the script with the file path as the only argument.
 
