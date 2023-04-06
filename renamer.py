@@ -7,15 +7,15 @@ from os.path import basename
 from difflib import SequenceMatcher
 
 # DEFINE LANGUAGE
-language = "english"
-languageISO = "eng"
+# language = "english"
+# languageISO = "eng"
 
 def similar(a, b):
   return SequenceMatcher(None, a, b).ratio()
 
 # Gets the ISO code "en", "fr", etc.
 # from the file basename
-def getLangCode(filename):
+def getLangCode(filename, language, languageISO):
   n = filename.lower()
   # Todo sort which words have the highest
   # matches instead of winner take all
@@ -55,7 +55,7 @@ def doFileCopy(oldFile, newFile):
   print (".")
   shutil.copyfile(oldFile, newFile)
 
-def multipleSubs(subs, subsPath, subslang):
+def copyMultipleSubtitles(subs, subsPath, subslang):
   # Logic for mutiple subtitles
   if (len(subs) == 3):
     print("3 Subtitles found")
@@ -83,111 +83,113 @@ def multipleSubs(subs, subsPath, subslang):
   else:
     print("More than 3 Subtitles found")
     for i in range(len(subs)):
-      doFileCopy(subsPath[i], subs[i] + "(" + i + ")" + subslang + ".srt")
+      doFileCopy(subsPath[i], subs[i] + "(" + str(i) + ")" + subslang + ".srt")
 
 workingDir = str(sys.argv[1])
-
-subsDir = ' '.join(glob(workingDir + '/*[sS][uU][bB]*'))
-checkFile = ' '.join(glob(workingDir + '/*.' + languageISO + '.srt'))
-print("workingDir", workingDir)
-print("subsDir", subsDir)
-print("checkFile", checkFile)
-
-# Verify layer 0 ISO 2 Code sub does not exist
-if (os.path.isfile(checkFile)):
-  print(checkFile, "sub file already exits")
-  sys.exit(1)
-if (not glob(workingDir + '/*.srt')) and (not os.path.isdir(subsDir)):
-  print(checkFile, "No sub files found")
-  sys.exit(1)
-
-# Files that are 1 layer deep
-movieFiles = glob(subsDir + "/*.srt")
-if not movieFiles:
-  # Files that are 0 layer deep
-  movieFiles = glob(workingDir + "/*.srt")
-
-# Sort files by size
-movieFiles = sorted( movieFiles, key =  lambda x: os.stat(x).st_size)
-
-# Get the parent folder name as the fallback option!
-workingDirBasename = basename(workingDir)
-
-# Fix the movie files
-# C/dir/to/movie/AVENGERS.1080p/
-#   AVENGERS.1080p.mp4
-#   Subs/
-#       2_English.srt
-
-# Create a Subtitle List to hold the files we want to keep.
-subtitles = []
-subtitlesPath = []
-if (does_working_dir_contains_matching_media(workingDirBasename)):
-  for filePath in movieFiles:
-    print("on movie file", filePath)
-    movieBaseName = basename(filePath)
-    if (getLangCode(movieBaseName) is None):
-      # print("Can't determine language code for =>", movieBaseName)
-      continue
-    # Add to list
-    subtitles.append(join(workingDir, workingDirBasename + "."))
-    subtitlesPath.append(filePath)
-
-  # Send lists to sub logic function
-  multipleSubs(subtitles, subtitlesPath, languageISO)
-else:
-  print("This is not a movie directory", workingDir)
-
-# Files that are 2 layers deep
-showFiles = glob(subsDir + "/**/*.srt")
-
-# Fix the TV show files
-# C/dir/to/show/PENTHOUSE.1080p/
-#   PENTHOUSE.S01E01.1080p.mp4
-#   Subs/
-#     PENTHOUSE.S01E01.1080p/
-#       2_English.srt
-
-# Dictionary to combine subtitles based on directory.
-subtitleDict = {}
-subtitlePathDict = {}
-# Create a Subtitle List to hold the files based on their directory.
-showSubtitles = []
-showSubtitlesPath = []
-for filePath in showFiles:
-  showBaseName = basename(filePath)
-  if (getLangCode(showBaseName) is None):
-    # print("Can't determine language code for =>", showBaseName)
-    continue
-  print("on show file", filePath)
-
-  # Do a media match check
-  episodeName = basename(os.path.dirname(filePath))
-  print("episodeName", episodeName)
-  if (not does_working_dir_contains_matching_media(episodeName)):
-    print("no media found for episode", episodeName, "in workingDir", workingDir)
-    continue
-
-  # Add to dictionary to combine files based on directory
-  if episodeName in subtitleDict:
-    # append the new number to the existing array at this slot
-    subtitleDict[episodeName].append(join(workingDir, episodeName + "."))
-    subtitlePathDict[episodeName].append(filePath)
-  else:
-    # create a new array in this slot
-    subtitleDict[episodeName] = [join(workingDir, episodeName + ".")]
-    subtitlePathDict[episodeName] = [filePath]
-
-# Loop through the two dictionaries to place subtitles into list based on the directory they are in
-for x, x1 in zip(subtitleDict, subtitlePathDict):
-  for y, y1 in zip(subtitleDict[x], subtitlePathDict[x1]):
-    showSubtitles.append(y)
-    showSubtitlesPath.append(y1)
-
-  # Send lists to sub logic function
-  multipleSubs(showSubtitles, showSubtitlesPath, languageISO)
-  # Clear lists for next dir subtitles
-  showSubtitles.clear()
-  showSubtitlesPath.clear()
-
 os.chmod(workingDir, 0o0777)
+subsDir = ' '.join(glob(workingDir + '/*[sS][uU][bB]*'))
+
+def runRenamer(language, languageISO):
+  checkFile = ' '.join(glob(workingDir + '/*.' + languageISO + '.srt'))
+  print("workingDir", workingDir)
+  print("subsDir", subsDir)
+  print("checkFile", checkFile)
+
+  # Verify layer 0 ISO 2 Code sub does not exist
+  if (os.path.isfile(checkFile)):
+    print(checkFile, "sub file already exits")
+    sys.exit(1)
+  if (not glob(workingDir + '/*.srt')) and (not os.path.isdir(subsDir)):
+    print(checkFile, "No sub files found")
+    sys.exit(1)
+
+  # Files that are 1 layer deep
+  movieFiles = glob(subsDir + "/*.srt")
+  if not movieFiles:
+    # Files that are 0 layer deep
+    movieFiles = glob(workingDir + "/*.srt")
+
+  # Sort files by size
+  movieFiles = sorted( movieFiles, key =  lambda x: os.stat(x).st_size)
+
+  # Get the parent folder name as the fallback option!
+  workingDirBasename = basename(workingDir)
+
+  # Fix the movie files
+  # C/dir/to/movie/AVENGERS.1080p/
+  #   AVENGERS.1080p.mp4
+  #   Subs/
+  #       2_English.srt
+
+  # Create a Subtitle List to hold the files we want to keep.
+  subtitles = []
+  subtitlesPath = []
+  if (does_working_dir_contains_matching_media(workingDirBasename)):
+    for filePath in movieFiles:
+      print("on movie file", filePath)
+      movieBaseName = basename(filePath)
+      if (getLangCode(movieBaseName, language, languageISO) is None):
+        # print("Can't determine language code for =>", movieBaseName)
+        continue
+      # Add to list
+      subtitles.append(join(workingDir, workingDirBasename + "."))
+      subtitlesPath.append(filePath)
+
+    # Send lists to sub logic function
+    copyMultipleSubtitles(subtitles, subtitlesPath, languageISO)
+  else:
+    print("This is not a movie directory", workingDir)
+
+  # Files that are 2 layers deep
+  showFiles = glob(subsDir + "/**/*.srt")
+
+  # Fix the TV show files
+  # C/dir/to/show/PENTHOUSE.1080p/
+  #   PENTHOUSE.S01E01.1080p.mp4
+  #   Subs/
+  #     PENTHOUSE.S01E01.1080p/
+  #       2_English.srt
+
+  # Dictionary to combine subtitles based on directory.
+  subtitleDict = {}
+  subtitlePathDict = {}
+  # Create a Subtitle List to hold the files based on their directory.
+  showSubtitles = []
+  showSubtitlesPath = []
+  for filePath in showFiles:
+    showBaseName = basename(filePath)
+    if (getLangCode(showBaseName, language, languageISO) is None):
+      # print("Can't determine language code for =>", showBaseName)
+      continue
+    print("on show file", filePath)
+
+    # Do a media match check
+    episodeName = basename(os.path.dirname(filePath))
+    print("episodeName", episodeName)
+    if (not does_working_dir_contains_matching_media(episodeName)):
+      print("no media found for episode", episodeName, "in workingDir", workingDir)
+      continue
+
+    # Add to dictionary to combine files based on directory
+    if episodeName in subtitleDict:
+      # append the new number to the existing array at this slot
+      subtitleDict[episodeName].append(join(workingDir, episodeName + "."))
+      subtitlePathDict[episodeName].append(filePath)
+    else:
+      # create a new array in this slot
+      subtitleDict[episodeName] = [join(workingDir, episodeName + ".")]
+      subtitlePathDict[episodeName] = [filePath]
+
+  # Loop through the two dictionaries to place subtitles into list based on the directory they are in
+  for x, x1 in zip(subtitleDict, subtitlePathDict):
+    for y, y1 in zip(subtitleDict[x], subtitlePathDict[x1]):
+      showSubtitles.append(y)
+      showSubtitlesPath.append(y1)
+
+    # Send lists to sub logic function
+    copyMultipleSubtitles(showSubtitles, showSubtitlesPath, languageISO)
+    # Clear lists for next dir subtitles
+    showSubtitles.clear()
+    showSubtitlesPath.clear()
+
+runRenamer("english", "eng")
