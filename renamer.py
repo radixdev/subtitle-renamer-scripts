@@ -5,6 +5,7 @@ from glob import glob
 from os.path import join
 from os.path import basename
 from difflib import SequenceMatcher
+import re
 
 # DEFINE LANGUAGES
 # (Language, ISO 639-2/B)
@@ -19,23 +20,37 @@ LANGUAGES = [
 ]
 
 def similar(a, b):
-  return SequenceMatcher(None, a, b).ratio()
+  matchVal = SequenceMatcher(None, a, b).ratio()
+  # print(a, b, "matchVal", matchVal)
+  return matchVal
 
 # Gets the ISO code "en", "fr", etc.
 # from the file basename
 def getLangCode(filename, language, languageISO):
-  n = filename.lower()
+  n = re.sub(r'[^a-zA-Z]', '', filename.lower())
+
+  # print("filename", filename)
+  # print("language", language)
+  # print("languageISO", languageISO)
+  # print("n", n)
+
+  if (language in n or languageISO in n):
+    print("matched in string compare", n)
+    return languageISO
+
+  # Get the code by doing a string similarity check
   # Todo sort which words have the highest
   # matches instead of winner take all
   if (similar(language + ".srt", n) > 0.9):
     print("matched whole word", n)
     return languageISO
+  if (similar(language + ".srt", n) > 0.8):
+    print("matched whole word", n)
+    return languageISO
   if (similar("_" + languageISO + ".srt", n) > 0.75):
     print("matched partial word", n)
     return languageISO
-  if (language in n or languageISO in n):
-    print("matched in string compare", n)
-    return languageISO
+
   return None
 
 # Check that a file with this name actually exists in the folder
