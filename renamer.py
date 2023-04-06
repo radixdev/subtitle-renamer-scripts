@@ -9,7 +9,9 @@ from difflib import SequenceMatcher
 # DEFINE LANGUAGES
 # language = "english"
 # languageISO = "eng"
-LANGUAGES = [("english, eng")]
+LANGUAGES = [
+  ("english", "eng")
+]
 
 def similar(a, b):
   return SequenceMatcher(None, a, b).ratio()
@@ -196,4 +198,6 @@ def runRenamer(language, languageISO):
 # runRenamer("english", "eng")
 
 for langCombo in LANGUAGES:
+  # print(langCombo[0])
+  # print(langCombo[1])
   runRenamer(langCombo[0], langCombo[1])
