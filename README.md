@@ -12,3 +12,12 @@ Via: "qbittorrent run external program on completion" in settings.
 Be sure to escape the file path here!
 
 `python C:\github\folder\here\subtitle-renamer-scripts\renamer.py "%R"`
+
+## Testing
+
+You can run the script on the `sample_data` directory to test things out.
+
+```bash
+sh format_sample_data.sh
+python renamer.py sample_data\
+```

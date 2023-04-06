@@ -1,42 +1,17 @@
 import os
 import sys
 import shutil
-import itertools
 from glob import glob
 from os.path import join
 from os.path import basename
 from difflib import SequenceMatcher
-from collections import defaultdict
-
-def similar(a, b):
-  return SequenceMatcher(None, a, b).ratio()
-
-workingDir = str(sys.argv[1])
 
 # DEFINE LANGUAGE
 language = "english"
 languageISO = "eng"
 
-print("workingDir", workingDir)
-
-subsDir = ' '.join(glob(workingDir + '/*[sS][uU][bB]*'))
-checkFile = ' '.join(glob(workingDir + '/*.' + languageISO + '.srt'))
-
-# Verify layer 0 ISO 2 Code sub does not exist
-if (os.path.isfile(checkFile)):
-  print(checkFile, "sub file already exits")
-  sys.exit(1)
-if (not glob(workingDir + '/*.srt')) and (not os.path.isdir(subsDir)):
-  print(checkFile, "No sub files found")
-  sys.exit(1)
-
-# Files that are 1 layer deep
-movieFiles = glob(subsDir + "/*.srt")
-if not movieFiles:
-# Files that are 0 layer deep
-  movieFiles = glob(workingDir + "/*.srt")
-# Sort files by size
-movieFiles = sorted( movieFiles, key =  lambda x: os.stat(x).st_size)
+def similar(a, b):
+  return SequenceMatcher(None, a, b).ratio()
 
 # Gets the ISO code "en", "fr", etc.
 # from the file basename
@@ -53,11 +28,7 @@ def getLangCode(filename):
   if (language in n or languageISO in n):
     print("matched in string compare", n)
     return languageISO
-  # Add other language codes here if you like
   return None
-
-# Get the parent folder name as the fallback option!
-workingDirBasename = basename(workingDir)
 
 # Check that a file with this name actually exists in the folder
 def filter_movie_extensions(filepath):
@@ -114,6 +85,34 @@ def multipleSubs(subs, subsPath, subslang):
     for i in range(len(subs)):
       doFileCopy(subsPath[i], subs[i] + "(" + i + ")" + subslang + ".srt")
 
+workingDir = str(sys.argv[1])
+
+subsDir = ' '.join(glob(workingDir + '/*[sS][uU][bB]*'))
+checkFile = ' '.join(glob(workingDir + '/*.' + languageISO + '.srt'))
+print("workingDir", workingDir)
+print("subsDir", subsDir)
+print("checkFile", checkFile)
+
+# Verify layer 0 ISO 2 Code sub does not exist
+if (os.path.isfile(checkFile)):
+  print(checkFile, "sub file already exits")
+  sys.exit(1)
+if (not glob(workingDir + '/*.srt')) and (not os.path.isdir(subsDir)):
+  print(checkFile, "No sub files found")
+  sys.exit(1)
+
+# Files that are 1 layer deep
+movieFiles = glob(subsDir + "/*.srt")
+if not movieFiles:
+  # Files that are 0 layer deep
+  movieFiles = glob(workingDir + "/*.srt")
+
+# Sort files by size
+movieFiles = sorted( movieFiles, key =  lambda x: os.stat(x).st_size)
+
+# Get the parent folder name as the fallback option!
+workingDirBasename = basename(workingDir)
+
 # Fix the movie files
 # C/dir/to/movie/AVENGERS.1080p/
 #   AVENGERS.1080p.mp4
@@ -133,7 +132,7 @@ if (does_working_dir_contains_matching_media(workingDirBasename)):
     # Add to list
     subtitles.append(join(workingDir, workingDirBasename + "."))
     subtitlesPath.append(filePath)
-    
+
   # Send lists to sub logic function
   multipleSubs(subtitles, subtitlesPath, languageISO)
 else:
@@ -161,7 +160,7 @@ for filePath in showFiles:
     # print("Can't determine language code for =>", showBaseName)
     continue
   print("on show file", filePath)
-  
+
   # Do a media match check
   episodeName = basename(os.path.dirname(filePath))
   print("episodeName", episodeName)
@@ -178,13 +177,13 @@ for filePath in showFiles:
     # create a new array in this slot
     subtitleDict[episodeName] = [join(workingDir, episodeName + ".")]
     subtitlePathDict[episodeName] = [filePath]
-    
+
 # Loop through the two dictionaries to place subtitles into list based on the directory they are in
 for x, x1 in zip(subtitleDict, subtitlePathDict):
   for y, y1 in zip(subtitleDict[x], subtitlePathDict[x1]):
     showSubtitles.append(y)
     showSubtitlesPath.append(y1)
-    
+
   # Send lists to sub logic function
   multipleSubs(showSubtitles, showSubtitlesPath, languageISO)
   # Clear lists for next dir subtitles

@@ -1,0 +1,1 @@
+rm -f ./sample_data/*.srt
