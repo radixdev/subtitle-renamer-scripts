@@ -6,9 +6,10 @@ from os.path import join
 from os.path import basename
 from difflib import SequenceMatcher
 
-# DEFINE LANGUAGE
+# DEFINE LANGUAGES
 # language = "english"
 # languageISO = "eng"
+LANGUAGES = [("english, eng")]
 
 def similar(a, b):
   return SequenceMatcher(None, a, b).ratio()
@@ -192,4 +193,7 @@ def runRenamer(language, languageISO):
     showSubtitles.clear()
     showSubtitlesPath.clear()
 
-runRenamer("english", "eng")
+# runRenamer("english", "eng")
+
+for langCombo in LANGUAGES:
+  runRenamer(langCombo[0], langCombo[1])
