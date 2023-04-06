@@ -7,10 +7,15 @@ from os.path import basename
 from difflib import SequenceMatcher
 
 # DEFINE LANGUAGES
-# language = "english"
-# languageISO = "eng"
+# (Language, ISO 639-2/B)
+# See https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 LANGUAGES = [
-  ("english", "eng")
+  ("english", "eng"),
+  ("arabic", "ara"),
+  ("spanish", "spa"),
+  ("korean", "kor"),
+  ("french", "fre"),
+  ("german", "ger"),
 ]
 
 def similar(a, b):
@@ -195,9 +200,5 @@ def runRenamer(language, languageISO):
     showSubtitles.clear()
     showSubtitlesPath.clear()
 
-# runRenamer("english", "eng")
-
 for langCombo in LANGUAGES:
-  # print(langCombo[0])
-  # print(langCombo[1])
   runRenamer(langCombo[0], langCombo[1])
